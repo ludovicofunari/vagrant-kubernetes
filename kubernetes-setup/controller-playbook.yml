@@ -1,0 +1,150 @@
+---
+- hosts: all
+  become: true
+  tasks:
+
+  ## Disable Swap
+  - name: Disable swap
+    command: swapoff -a
+    when: ansible_swaptotal_mb > 0
+
+  - name: Remove swapfile from /etc/fstab
+    mount:
+      name: "{{ item }}"
+      fstype: swap
+      state: absent
+    with_items:
+      - swap
+      - none
+
+  ## Install Docker
+  - name: Install packages that allow apt to be used over HTTPS
+    apt:
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+      - bash-completion
+      - locate
+  
+  - name: Update locate db 
+    command: sudo updatedb
+
+  - name: Add an apt signing key for Docker
+    apt_key:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      state: present
+
+  - name: Add apt repository for stable version
+    apt_repository:
+      repo: deb [arch={{ arch }}] https://download.docker.com/linux/ubuntu {{ ubuntu_release }} stable
+      state: present
+
+  - name: Install docker and its dependecies
+    apt: 
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+      - docker-ce 
+      - docker-ce-cli 
+      - containerd.io
+      notify:
+      - docker status
+
+  - name: Add vagrant user to docker group
+    user:
+      name: vagrant
+      group: docker
+
+  # Edit cgroup
+  - name: Configure cGroup
+    shell:
+      cmd: |
+        sudo mkdir /etc/docker
+        cat <<EOF | sudo tee /etc/docker/daemon.json
+        {
+          "exec-opts": ["native.cgroupdriver=systemd"],
+          "log-driver": "json-file",
+          "log-opts": {
+            "max-size": "100m"
+          },
+          "storage-driver": "overlay2"
+        }
+        EOF
+
+  - name: Restart docker
+    service:
+      name: docker
+      daemon_reload: yes
+      state: restarted
+
+  ## Install Kubernetes
+  ## TODO: skip cluster if already up
+  - name: Add an apt signing key for Kubernetes
+    apt_key:
+      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+      state: present
+
+  - name: Adding apt repository for Kubernetes
+    apt_repository:
+      repo: deb [arch={{ arch }}] https://apt.kubernetes.io/ kubernetes-xenial main
+      state: present
+      filename: kubernetes.list
+
+  - name: Install Kubernetes binaries
+    apt: 
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+        - kubelet 
+        - kubeadm 
+        - kubectl
+
+  - name: Configure node ip
+    lineinfile:
+      path: /etc/default/kubelet
+      line: KUBELET_EXTRA_ARGS=--node-ip={{ controller_ip }}
+      create: yes
+
+  - name: Restart kubelet
+    service:
+      name: kubelet
+      daemon_reload: yes
+      state: restarted
+
+  ## Initialize Kubernetes Cluster
+  - name: Initialize the Kubernetes cluster using kubeadm
+    command: kubeadm init --apiserver-advertise-address={{ controller_ip }} --apiserver-cert-extra-sans={{ controller_ip }} --pod-network-cidr={{ pod_cidr }}
+    
+  - name: Setup kubeconfig for vagrant user
+    command: "{{ item }}"
+    with_items:
+     - mkdir -p /home/vagrant/.kube
+     - cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
+     - chown vagrant:vagrant /home/vagrant/.kube/config
+
+  - name: Install Tigera Calico Operator
+    become: false
+    command: kubectl create -f https://projectcalico.docs.tigera.io/manifests/tigera-operator.yaml
+
+  - name: Install calico pod network
+    become: false
+    command: kubectl create -f https://projectcalico.docs.tigera.io/manifests/custom-resources.yaml
+
+  - name: Get the token for joining the worker nodes
+    shell:
+      cmd: |
+        kubeadm token create --print-join-command >> {{ shared_dir_guest }}/kubernetes_join_command.sh
+
+  handlers:
+    - name: docker status
+      service: name=docker state=started
