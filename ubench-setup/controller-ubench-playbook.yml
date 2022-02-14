@@ -1,0 +1,40 @@
+---
+- hosts: all
+  become: true
+  tasks:
+
+  - name: Install nfs packages
+    apt:
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+      - nfs-kernel-server
+
+  - name: Creates shared directory
+    file:
+      path: "{{ shared_nfs_dir }}"
+      state: directory
+      owner: nobody
+      group: nogroup
+      mode: 0777
+      # recurse: yes # recursively
+
+  - name: Setup kubeconfig for vagrant user
+    command: "{{ item }}"
+    with_items:
+     - exportfs -a
+     - systemctl restart nfs-kernel-server
+
+  - name: Insert a line at the end of /etc/exports
+    lineinfile:
+      path: /etc/exports
+      line: "{{ shared_nfs_dir }} *(rw,sync,no_subtree_check,no_root_squash,insecure)"
+      create: yes
+
+  - name: Setup kubeconfig for vagrant user
+    command: "{{ item }}"
+    with_items:
+     - exportfs -a
+     - systemctl restart nfs-kernel-server

@@ -17,6 +17,7 @@ POD_CIDR = "192.168.0.0/16"
 PWD = ENV["PWD"] 
 SHARED_DIR_HOST = "sharedDir"
 SHARED_DIR_GUEST = "/etc/vagrant/sharedDir"
+SHARED_NFS_DIR = "/kubedata"
 
 Vagrant.configure("2") do |config|
     if ARCH == "arm64"
@@ -40,13 +41,20 @@ Vagrant.configure("2") do |config|
         end
 
         node.vm.provision "ansible" do |ansible|
-            ansible.playbook = "kubernetes-setup/controller-playbook.yml"
+
+            # ansible.playbook = "kubernetes-setup/controller-playbook.yml"
+            # ansible.extra_vars = {
+                # controller_ip: CONTROLLER_IP,
+                # arch: ARCH,
+                # ubuntu_release: UBUNTU_RELEASE,
+                # pod_cidr: POD_CIDR,
+                # shared_dir_guest: SHARED_DIR_GUEST,
+            # }
+
+            ansible.playbook = "ubench-setup/controller-ubench-playbook.yml"
             ansible.extra_vars = {
                 controller_ip: CONTROLLER_IP,
-                arch: ARCH,
-                ubuntu_release: UBUNTU_RELEASE,
-                pod_cidr: POD_CIDR,
-                shared_dir_guest: SHARED_DIR_GUEST,
+                shared_nfs_dir: SHARED_NFS_DIR,
             }
         end
 
@@ -67,12 +75,20 @@ Vagrant.configure("2") do |config|
             end
 
             node.vm.provision "ansible" do |ansible|
+
                 ansible.playbook = "kubernetes-setup/workers-playbook.yml"
                 ansible.extra_vars = {
                     controller_ip: CONTROLLER_IP,
                     arch: ARCH,
                     ubuntu_release: UBUNTU_RELEASE,
                     shared_dir_guest: SHARED_DIR_GUEST,
+                    shared_nfs_dir: SHARED_NFS_DIR,
+                }
+
+                ansible.playbook = "ubench-setup/worker-ubench-playbook.yml"
+                ansible.extra_vars = {
+                    controller_ip: CONTROLLER_IP,
+                    shared_nfs_dir: SHARED_NFS_DIR,
                 }
             end
             

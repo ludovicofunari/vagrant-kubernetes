@@ -1,0 +1,33 @@
+---
+- hosts: all
+  become: true
+  tasks:
+
+  - name: Install nfs packages
+    apt:
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+      - nfs-common
+
+  - name: Creates shared directory
+    file:
+      path: "{{ shared_nfs_dir }}"
+      state: directory
+      owner: nobody
+      group: nogroup
+      mode: 0777
+      # recurse: yes # recursively
+
+  - name: Insert a line at the end of /etc/fstab
+    lineinfile:
+      path: /etc/fstab
+      line: "{{ controller_ip }}:{{ shared_nfs_dir }} {{ shared_nfs_dir }} nfs defaults 0 2"
+      create: yes
+
+  - name: Setup kubeconfig for vagrant user
+    command: "{{ item }}"
+    with_items:
+     - mount {{ controller_ip }}:{{ shared_nfs_dir }} {{ shared_nfs_dir }}
