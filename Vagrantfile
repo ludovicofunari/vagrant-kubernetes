@@ -42,20 +42,20 @@ Vagrant.configure("2") do |config|
 
         node.vm.provision "ansible" do |ansible|
 
-            # ansible.playbook = "kubernetes-setup/controller-playbook.yml"
-            # ansible.extra_vars = {
-                # controller_ip: CONTROLLER_IP,
-                # arch: ARCH,
-                # ubuntu_release: UBUNTU_RELEASE,
-                # pod_cidr: POD_CIDR,
-                # shared_dir_guest: SHARED_DIR_GUEST,
-            # }
-
-            ansible.playbook = "ubench-setup/controller-ubench-playbook.yml"
+            ansible.playbook = "kubernetes-setup/controller-playbook.yml"
             ansible.extra_vars = {
                 controller_ip: CONTROLLER_IP,
-                shared_nfs_dir: SHARED_NFS_DIR,
+                arch: ARCH,
+                ubuntu_release: UBUNTU_RELEASE,
+                pod_cidr: POD_CIDR,
+                shared_dir_guest: SHARED_DIR_GUEST,
             }
+
+            # ansible.playbook = "ubench-setup/controller-ubench-playbook.yml"
+            # ansible.extra_vars = {
+                # controller_ip: CONTROLLER_IP,
+                # shared_nfs_dir: SHARED_NFS_DIR,
+            # }
         end
 
     end
@@ -85,11 +85,11 @@ Vagrant.configure("2") do |config|
                     shared_nfs_dir: SHARED_NFS_DIR,
                 }
 
-                ansible.playbook = "ubench-setup/worker-ubench-playbook.yml"
-                ansible.extra_vars = {
-                    controller_ip: CONTROLLER_IP,
-                    shared_nfs_dir: SHARED_NFS_DIR,
-                }
+                # ansible.playbook = "ubench-setup/worker-ubench-playbook.yml"
+                # ansible.extra_vars = {
+                    # controller_ip: CONTROLLER_IP,
+                    # shared_nfs_dir: SHARED_NFS_DIR,
+                # }
             end
             
         end
