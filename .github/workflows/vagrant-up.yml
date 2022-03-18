@@ -1,4 +1,4 @@
-name: Vagrant Up
+name: vagrant-up
 
 on:
   push:
@@ -12,6 +12,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Cache Vagrant boxes
+        uses: actions/cache@v2
+        with:
+          path: ~/.vagrant.d/boxes
+          key: ${{ runner.os }}-vagrant-${{ hashFiles('Vagrantfile') }}
+          restore-keys: |
+            ${{ runner.os }}-vagrant-
+
       - name: Show Vagrant version
         run: vagrant --version
 
@@ -19,4 +27,4 @@ jobs:
         run: vagrant up
 
       - name: ssh into box after boot
-        run: vagrant ssh k8s-controller-1 -c "kubectl get nodes"
+        run: vagrant ssh k8s-controller -c "kubectl get nodes"
