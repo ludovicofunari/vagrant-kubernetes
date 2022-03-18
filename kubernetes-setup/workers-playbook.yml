@@ -128,11 +128,11 @@
         # state: present
         # msg: "Join command not created"
 
-  ## Join the workers to the cluster
-  - name: Get the token for joining the worker nodes
-    shell:
-      cmd: |
-        sh {{ shared_dir_guest }}/kubernetes_join_command.sh
+  # ## Join the workers to the cluster
+  # - name: Get the token for joining the worker nodes
+  #   shell:
+  #     cmd: |
+  #       sh {{ shared_dir_guest }}/kubernetes_join_command.sh
 
   handlers:
     - name: docker status

@@ -128,22 +128,34 @@
   - name: Setup kubeconfig for vagrant user
     command: "{{ item }}"
     with_items:
-     - mkdir -p /home/vagrant/.kube
-     - cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
-     - chown vagrant:vagrant /home/vagrant/.kube/config
+      - mkdir -p /home/vagrant/.kube
+      - cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
+      - chown vagrant:vagrant /home/vagrant/.kube/config
 
-  - name: Install Tigera Calico Operator
+  - name: Install Flannel
     become: false
-    command: kubectl create -f https://projectcalico.docs.tigera.io/manifests/tigera-operator.yaml
+    command: kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
 
-  - name: Install calico pod network
-    become: false
-    command: kubectl create -f https://projectcalico.docs.tigera.io/manifests/custom-resources.yaml
+  # - name: Install Tigera Calico Operator
+    # become: false
+    # command: kubectl create -f https://projectcalico.docs.tigera.io/manifests/tigera-operator.yaml
 
-  - name: Get the token for joining the worker nodes
-    shell:
-      cmd: |
-        kubeadm token create --print-join-command >> {{ shared_dir_guest }}/kubernetes_join_command.sh
+  # - name: Install calico pod network
+    # become: false
+    # command: kubectl create -f https://projectcalico.docs.tigera.io/manifests/custom-resources.yaml
+
+  # - name: Get the token for joining the worker nodes
+    # shell:
+      # cmd: |
+        # kubeadm token create --print-join-command >> {{ shared_dir_guest }}/kubernetes_join_command.sh
+
+  - name: kubeadm token create --print-join-command
+    command: kubeadm token create --print-join-command
+    changed_when: False
+    register: join_command
+
+  - debug:
+      msg: "{{ join_command.stdout }}"
 
   handlers:
     - name: docker status
