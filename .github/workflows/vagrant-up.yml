@@ -33,7 +33,7 @@ jobs:
         run: vagrant --version
 
       - name: Run vagrant up
-        run: vagrant up --provider=virtualbox
+        run: vagrant up --provider=virtualbox --parallel
 
       - name: ssh into box after boot
         run: vagrant ssh k8s-controller -c "kubectl get nodes"

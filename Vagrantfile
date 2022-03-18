@@ -15,9 +15,6 @@ CONTROLLER_IP = IP_BASE + "#{CONTROLLER_IP_START}"
 WORKERS_IP_START = 101
 POD_CIDR = "10.244.0.0/16"
 PWD = ENV["PWD"] 
-# SHARED_DIR_HOST = "sharedDir"
-# SHARED_DIR_GUEST = "/etc/vagrant/sharedDir"
-# SHARED_NFS_DIR = "/kubedata"
 
 Vagrant.configure("2") do |config|
     if ARCH == "arm64"
@@ -26,8 +23,6 @@ Vagrant.configure("2") do |config|
         config.vm.box = BOX_BASE
     end
     
-    # config.vm.synced_folder SHARED_DIR_HOST, SHARED_DIR_GUEST
-
     # Provision the Kubernetes Controller
     config.vm.define "k8s-controller" do |node|
         node.vm.hostname = "k8s-controller"
@@ -45,13 +40,7 @@ Vagrant.configure("2") do |config|
                 arch: ARCH,
                 ubuntu_release: UBUNTU_RELEASE,
                 pod_cidr: POD_CIDR,
-                # shared_dir_guest: SHARED_DIR_GUEST,
             }
-            # ansible.playbook = "ubench-setup/controller-ubench-playbook.yml"
-            # ansible.extra_vars = {
-                # controller_ip: CONTROLLER_IP,
-                # shared_nfs_dir: SHARED_NFS_DIR,
-            # }
         end
     end
 
@@ -75,15 +64,7 @@ Vagrant.configure("2") do |config|
                     controller_ip: CONTROLLER_IP,
                     arch: ARCH,
                     ubuntu_release: UBUNTU_RELEASE,
-                    # shared_dir_guest: SHARED_DIR_GUEST,
-                    # shared_nfs_dir: SHARED_NFS_DIR,
                 }
-
-                # ansible.playbook = "ubench-setup/worker-ubench-playbook.yml"
-                # ansible.extra_vars = {
-                    # controller_ip: CONTROLLER_IP,
-                    # shared_nfs_dir: SHARED_NFS_DIR,
-                # }
             end
             
         end
