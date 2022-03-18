@@ -25,6 +25,9 @@ jobs:
 
       - name: Add VirtualBox conf
         run: echo "* 10.0.0.0/8 192.168.0.0/16 172.16.0.0/12" | sudo tee -a /etc/vbox/networks.conf   
+
+      - name: Install Ansible
+        run: brew install --cask vagrant
         
       - name: Show Vagrant version
         run: vagrant --version
