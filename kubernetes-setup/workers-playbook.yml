@@ -111,9 +111,10 @@
   - name: Configure node ip
     lineinfile:
       path: /etc/default/kubelet
-      line: KUBELET_EXTRA_ARGS=--node-ip={{ controller_ip }}
+      line: KUBELET_EXTRA_ARGS=--node-ip={{ worker_ip }}
       create: yes
 
+  
   - name: Restart kubelet
     service:
       name: kubelet
