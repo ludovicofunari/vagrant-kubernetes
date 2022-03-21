@@ -32,6 +32,9 @@ jobs:
       - name: Show Vagrant version
         run: vagrant --version
 
+      - name: Create conf directory
+        run: sudo mkdir sharedDir
+        
       - name: Run vagrant up
         run: vagrant up --provider=virtualbox --parallel
 
