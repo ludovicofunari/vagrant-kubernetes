@@ -19,3 +19,21 @@ vagrant plugin list                    # list the installed plugin
 vagrant plugin install vagrant-libvirt # install libvirt plugin
 vagrant up --no-parallel               # avoid parallelism
 ```
+
+## New: use vagrant and ansible separately
+```bash
+controller_ip: CONTROLLER_IP,
+arch: ARCH,
+ubuntu_release: UBUNTU_RELEASE,
+pod_cidr: POD_CIDR,
+```
+```bash
+ansible-playbook \
+  -i hosts \
+  --extra-vars "controller_ip=CONTROLLER_IP" \
+  --extra-vars "arch=ARCH" \
+  --extra-vars "ubuntu_release=UBUNTU_RELEASE" \
+  --extra-vars "pod_cidr=POD_CIDR" \
+  kubernetes-setup/controller-playbook.yml
+```
+

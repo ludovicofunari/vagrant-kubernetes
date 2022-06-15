@@ -1,2 +1,3 @@
 .vagrant
 sharedDir/*
+.DS_Store*
