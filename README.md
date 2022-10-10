@@ -37,3 +37,22 @@ ansible-playbook \
   kubernetes-setup/controller-playbook.yml
 ```
 
+# Tip
+If this error shows up while installing Kubernetes cluster:
+```
+[init] Using Kubernetes version: v1.25.2
+[preflight] Running pre-flight checks
+error execution phase preflight: [preflight] Some fatal errors occurred:
+        [ERROR CRI]: container runtime is not running: output: E1010 14:47:06.968395    1128 remote_runtime.go:948] "Status from runtime service failed" err="rpc error: code = Unimplemented desc = unknown service runtime.v1alpha2.RuntimeService"
+time="2022-10-10T14:47:06Z" level=fatal msg="getting status of runtime: rpc error: code = Unimplemented desc = unknown service runtime.v1alpha2.RuntimeService"
+, error: exit status 1
+[preflight] If you know what you are doing, you can make a check non-fatal with `--ignore-preflight-errors=...`
+```
+
+Then, follow what [this guy](https://www.reddit.com/r/kubernetes/comments/utiymt/comment/i9h3fgg/?utm_source=share&utm_medium=web2x&context=3) suggests:
+
+```
+sudo rm /etc/containerd/config.toml
+sudo systemctl restart containerd
+sudo kubeadm init
+
